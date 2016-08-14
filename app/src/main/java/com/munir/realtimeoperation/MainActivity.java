@@ -114,6 +114,7 @@ public class MainActivity extends AppCompatActivity {
                 int lastVisiblePosition = mLinearLayoutManager.findLastCompletelyVisibleItemPosition();
                 if (lastVisiblePosition == -1 || (positionStart >= (itemCount -1) && lastVisiblePosition == (positionStart -1))){
                     mRecyclerView.scrollToPosition(positionStart);
+                    
                 }
             }
         });
