@@ -1,5 +1,7 @@
 package com.munir.realtimeoperation;
 
+import android.content.Intent;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
@@ -13,6 +15,7 @@ import android.util.Log;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -47,6 +50,8 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
     private LinearLayoutManager mLinearLayoutManager;
     private DatabaseReference mDatabaseReference;
     private FirebaseRecyclerAdapter<AddressBook,AddressViewHolder> mFirebaseAdapter;
+    private ProgressBar progressBar;
+    private int itemCount = 0;
     public interface ClickListener {
         void onClick(View view, int position);
 
@@ -67,11 +72,13 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
                         .setAction("Action", null).show();
             }
         });
+        progressBar = (ProgressBar)findViewById(R.id.progressBar);
         mRecyclerView = (RecyclerView)findViewById(R.id.recyclerview);
         mLinearLayoutManager = new LinearLayoutManager(this);
         mRecyclerView.setHasFixedSize(true);
         //mLinearLayoutManager.setStackFromEnd(true);
         // mRecyclerView.setLayoutManager(mLinearLayoutManager);
+        new Wait().execute();
         mDatabaseReference = FirebaseDatabase.getInstance().getReference();
         mFirebaseAdapter = new FirebaseRecyclerAdapter<AddressBook, AddressViewHolder>(
                 AddressBook.class,
@@ -86,6 +93,8 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
                 viewHolder.textUrl.setText(model.getUrl());
                 pos = position;
 
+
+
                /* viewHolder.mView.setOnClickListener(new View.OnClickListener(){
                     @Override
                     public void onClick(View v) {
@@ -95,7 +104,10 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
                 mRecyclerView.addOnItemTouchListener(new RecyclerTouchListener(getApplicationContext(), mRecyclerView, new ClickListener(){
                     @Override
                     public void onClick(View view, int position) {
-                        Toast.makeText(getApplicationContext(),mFirebaseAdapter.getItem(position).getName() + " is selected!", Toast.LENGTH_SHORT).show();
+                       // Toast.makeText(getApplicationContext(),mFirebaseAdapter.getItem(position).getName() + " is selected!", Toast.LENGTH_SHORT).show();
+                        Intent intent = new Intent(MainActivity.this,AddressDetails.class);
+                        intent.putExtra("Position", position);
+                        startActivity(intent);
                     }
 
                     @Override
@@ -157,5 +169,28 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
         // be available.
         Log.d(TAG, "onConnectionFailed:" + connectionResult);
         Toast.makeText(this, "Google Play Services error.", Toast.LENGTH_SHORT).show();
+    }
+    private class Wait extends AsyncTask<Void, Void,Integer>{
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            progressBar.setVisibility(View.VISIBLE);
+            mRecyclerView.setVisibility(View.GONE);
+        }
+
+        @Override
+        protected Integer doInBackground(Void... params) {
+            itemCount = mFirebaseAdapter.getItemCount();
+            return itemCount;
+        }
+
+        @Override
+        protected void onPostExecute(Integer integer) {
+            super.onPostExecute(integer);
+            if(integer > 0){
+                progressBar.setVisibility(View.GONE);
+                mRecyclerView.setVisibility(View.VISIBLE);
+            }
+        }
     }
 }
