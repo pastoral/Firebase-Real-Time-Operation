@@ -77,12 +77,13 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
         mLinearLayoutManager = new LinearLayoutManager(this);
         mRecyclerView.setHasFixedSize(true);
 
-        mDatabaseReference = FirebaseDatabase.getInstance().getReference();
+        mDatabaseReference = FirebaseDatabase.getInstance().getReference(ADRESS);
+        mDatabaseReference.keepSynced(true);
         mFirebaseAdapter = new FirebaseRecyclerAdapter<AddressBook, AddressViewHolder>(
                 AddressBook.class,
                 R.layout.address_item,
                 AddressViewHolder.class,
-                mDatabaseReference.child(ADRESS)
+                mDatabaseReference
         ) {
             @Override
             protected void populateViewHolder(final AddressViewHolder viewHolder, final AddressBook model, int position) {
