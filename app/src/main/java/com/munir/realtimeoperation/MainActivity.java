@@ -25,6 +25,9 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class MainActivity extends AppCompatActivity implements GoogleApiClient.OnConnectionFailedListener {
 
     public static class AddressViewHolder extends RecyclerView.ViewHolder{
@@ -45,13 +48,18 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
     }
     public static final String ADRESS = "addresses";
     private static final String TAG = "MainActivity";
+    public static int INTENT_POSITION ;
     public int pos = 0;
+    private Intent intent;
     private RecyclerView mRecyclerView;
     private LinearLayoutManager mLinearLayoutManager;
+    private FirebaseDatabase mDatabase;
     private DatabaseReference mDatabaseReference;
     private FirebaseRecyclerAdapter<AddressBook,AddressViewHolder> mFirebaseAdapter;
     private ProgressBar progressBar;
+    static boolean calledAlready = false;
     private int itemCount = 0;
+    static final int REQ = 1;
     public interface ClickListener {
         void onClick(View view, int position);
 
@@ -63,13 +71,14 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
+                //Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
+                //        .setAction("Action", null).show();
+              intent = new Intent(MainActivity.this, AddEditAddress.class);
+                startActivityForResult(intent,REQ);
             }
         });
         progressBar = (ProgressBar)findViewById(R.id.progressBar);
@@ -77,6 +86,16 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
         mLinearLayoutManager = new LinearLayoutManager(this);
         mRecyclerView.setHasFixedSize(true);
 
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        if (!calledAlready)
+        {
+            FirebaseDatabase.getInstance().setPersistenceEnabled(true);
+            calledAlready = true;
+        }
         mDatabaseReference = FirebaseDatabase.getInstance().getReference(ADRESS);
         mDatabaseReference.keepSynced(true);
         mFirebaseAdapter = new FirebaseRecyclerAdapter<AddressBook, AddressViewHolder>(
@@ -96,10 +115,10 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
                 mRecyclerView.addOnItemTouchListener(new RecyclerTouchListener(getApplicationContext(), mRecyclerView, new ClickListener(){
                     @Override
                     public void onClick(View view, int position) {
-                       // Toast.makeText(getApplicationContext(),mFirebaseAdapter.getItem(position).getName() + " is selected!", Toast.LENGTH_SHORT).show();
-                        Intent intent = new Intent(MainActivity.this,AddressDetails.class);
+                        // Toast.makeText(getApplicationContext(),mFirebaseAdapter.getItem(position).getName() + " is selected!", Toast.LENGTH_SHORT).show();
+                        intent = new Intent(MainActivity.this,AddressDetails.class);
                         intent.putExtra("Position", position);
-                        startActivity(intent);
+                        startActivityForResult(intent,REQ);
                     }
 
                     @Override
@@ -131,6 +150,17 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
         mRecyclerView.setItemAnimator(new DefaultItemAnimator());
         mRecyclerView.addItemDecoration(new DividerItemDecoration(this, LinearLayoutManager.VERTICAL));
         mRecyclerView.setAdapter(mFirebaseAdapter);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if(requestCode == REQ){
+            if(resultCode == RESULT_OK){
+                HashMap<String,Object> result = (HashMap<String,Object>)data.getSerializableExtra("result");
+                mDatabaseReference.push().setValue(result);
+            }
+        }
 
     }
 
@@ -162,4 +192,5 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
         Log.d(TAG, "onConnectionFailed:" + connectionResult);
         Toast.makeText(this, "Google Play Services error.", Toast.LENGTH_SHORT).show();
     }
+    
 }

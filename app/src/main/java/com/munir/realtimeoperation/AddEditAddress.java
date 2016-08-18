@@ -1,10 +1,58 @@
 package com.munir.realtimeoperation;
 
+import android.app.Activity;
+import android.content.Intent;
+import android.os.Bundle;
+import android.os.PersistableBundle;
+import android.support.design.widget.CoordinatorLayout;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.Toast;
+
+import java.util.HashMap;
 
 /**
  * Created by munirul.hoque on 8/16/2016.
  */
 public class AddEditAddress extends AppCompatActivity {
+    Button bOK,bCancel;
+     AddressBook addressBook;
+    int position;
+    EditText pName,pEmail,pUrl,pAddress;
+    CoordinatorLayout cl;
+    Intent intent;
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.layout_add_edit_address);
+
+        cl = (CoordinatorLayout) findViewById(R.id.cdlayout);
+        pName = (EditText) findViewById(R.id.edit_text_address_detail_name);
+        pEmail = (EditText) findViewById(R.id.edit_text_address_detail_email);
+        pUrl = (EditText) findViewById(R.id.edit_text_address_detail_url);
+        pAddress = (EditText) findViewById(R.id.edit_text_address_detail_address);
+
+        bOK = (Button) findViewById(R.id.bOk);
+        bCancel = (Button) findViewById(R.id.bCancel);
+        intent = getIntent();
+    }
+
+    public void addAddress(View view){
+        HashMap<String, Object> result = new HashMap<>();
+        result.put("name" , pName.getText().toString());
+        result.put("address" , pEmail.getText().toString());
+        result.put("url" , pUrl.getText().toString());
+        result.put("email", pEmail.getText().toString());
+        intent.putExtra("result",result);
+        setResult(Activity.RESULT_OK,intent);
+        finish();
+    }
+
+    public void cancel(View view){
+        finish();
+    }
+
 }
