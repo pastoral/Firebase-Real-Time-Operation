@@ -24,6 +24,7 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.roughike.bottombar.BottomBar;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -88,6 +89,9 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
         mRecyclerView = (RecyclerView)findViewById(R.id.recyclerview);
         mLinearLayoutManager = new LinearLayoutManager(this);
         mRecyclerView.setHasFixedSize(true);
+
+        BottomBar bottomBar = BottomBar.attach(this,savedInstanceState);
+        bottomBar.setItemsFromMenu(R.menu.menu_bottom_bar,);
 
     }
 
@@ -208,4 +212,6 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
         super.onDestroy();
         mFirebaseAdapter.cleanup();
     }
+
+
 }
