@@ -13,17 +13,19 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Created by munirul.hoque on 8/16/2016.
  */
 public class AddEditAddress extends AppCompatActivity {
     Button bOK,bCancel;
-     AddressBook addressBook;
+    AddressBook addressBook;
     int position;
     EditText pName,pEmail,pUrl,pAddress;
     CoordinatorLayout cl;
     Intent intent;
+    public Bundle bundle;
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -38,17 +40,54 @@ public class AddEditAddress extends AppCompatActivity {
         bOK = (Button) findViewById(R.id.bOk);
         bCancel = (Button) findViewById(R.id.bCancel);
         intent = getIntent();
+        bundle = intent.getExtras();
+        position = bundle.getInt(MainActivity.INTENT_TYPE);
+        if( position!= -1){
+            showAddress();
+        }
+
     }
 
     public void addAddress(View view){
-        HashMap<String, Object> result = new HashMap<>();
+       /* HashMap<String, Object> result = new HashMap<>();
+        HashMap<String, Object> resultUpdate = new HashMap<>();
         result.put("name" , pName.getText().toString());
         result.put("address" , pEmail.getText().toString());
         result.put("url" , pUrl.getText().toString());
         result.put("email", pEmail.getText().toString());
         intent.putExtra("result",result);
         setResult(Activity.RESULT_OK,intent);
+        if(position==-1) {
+            MainActivity.mDatabaseReference.push().setValue(result);
+        }
+        else{
+            MainActivity.mDatabaseReference.child(bundle.getString("key").toString()).push().setValue(result);
+        }*/
+        String key = bundle.getString("key");
+        AddressBook addressBook = new AddressBook(pName.getText().toString(),
+                pAddress.getText().toString(),
+                pUrl.getText().toString(),
+                pEmail.getText().toString());
+        Map<String,Object> postValues = addressBook.toMap();
+        if( position == -1) {
+            MainActivity.mDatabaseReference.push().setValue(addressBook);
+        }
+        else{
+            //Map<String,Object> addressUpdate = new HashMap<>();
+
+            //MainActivity.mDatabaseReference.child(bundle.getString("key").toString()).setValue(postValues);
+
+            MainActivity.mDatabaseReference.child(key).updateChildren(postValues);
+        }
+
         finish();
+    }
+
+    private void showAddress(){
+        pName.setText(bundle.getString("name").toString());
+        pEmail.setText(bundle.getString("email").toString());
+        pUrl.setText(bundle.getString("url").toString());
+        pAddress.setText(bundle.getString("address").toString());
     }
 
     public void cancel(View view){

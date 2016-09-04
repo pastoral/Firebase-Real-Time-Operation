@@ -55,12 +55,12 @@ public class AddressBook {
         this.url = url;
     }
 
-   /* public Map<String,Object> toMap(){
+    public Map<String,Object> toMap(){
         HashMap<String,Object> result = new HashMap<>();
         result.put("name" , name);
         result.put("address" , address);
         result.put("url" , url);
         result.put("email", email);
         return result;
-    }*/
+    }
 }

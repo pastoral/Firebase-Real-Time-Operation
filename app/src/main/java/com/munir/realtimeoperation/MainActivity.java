@@ -48,14 +48,14 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
     }
     public static final String ADRESS = "addresses";
     private static final String TAG = "MainActivity";
-    public static int INTENT_POSITION ;
+    public static String INTENT_TYPE ;
     public int pos = 0;
     private Intent intent;
     private RecyclerView mRecyclerView;
     private LinearLayoutManager mLinearLayoutManager;
-    private FirebaseDatabase mDatabase;
-    private DatabaseReference mDatabaseReference;
-    private FirebaseRecyclerAdapter<AddressBook,AddressViewHolder> mFirebaseAdapter;
+    public static FirebaseDatabase mDatabase;
+    public static DatabaseReference mDatabaseReference;
+    public FirebaseRecyclerAdapter<AddressBook,AddressViewHolder> mFirebaseAdapter;
     private ProgressBar progressBar;
     static boolean calledAlready = false;
     private int itemCount = 0;
@@ -77,8 +77,11 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
             public void onClick(View view) {
                 //Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
                 //        .setAction("Action", null).show();
-              intent = new Intent(MainActivity.this, AddEditAddress.class);
-                startActivityForResult(intent,REQ);
+                intent = new Intent(MainActivity.this, AddEditAddress.class);
+                intent.putExtra(INTENT_TYPE,-1);
+
+               // startActivityForResult(intent,REQ);
+                startActivity(intent);
             }
         });
         progressBar = (ProgressBar)findViewById(R.id.progressBar);
@@ -112,13 +115,20 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
                 viewHolder.textUrl.setText(model.getUrl());
                 pos = position;
 
+
                 mRecyclerView.addOnItemTouchListener(new RecyclerTouchListener(getApplicationContext(), mRecyclerView, new ClickListener(){
                     @Override
                     public void onClick(View view, int position) {
                         // Toast.makeText(getApplicationContext(),mFirebaseAdapter.getItem(position).getName() + " is selected!", Toast.LENGTH_SHORT).show();
-                        intent = new Intent(MainActivity.this,AddressDetails.class);
-                        intent.putExtra("Position", position);
-                        startActivityForResult(intent,REQ);
+                        final String Key = getRef(position).getKey();
+                        intent = new Intent(MainActivity.this,AddEditAddress.class);
+                        intent.putExtra("name",mFirebaseAdapter.getItem(position).getName());
+                        intent.putExtra("email",mFirebaseAdapter.getItem(position).getEmail());
+                        intent.putExtra("url",mFirebaseAdapter.getItem(position).getUrl());
+                        intent.putExtra("address",mFirebaseAdapter.getItem(position).getAddress());
+                        intent.putExtra("key",Key);
+                        startActivity(intent);
+                       // startActivityForResult(intent,REQ);
                     }
 
                     @Override
@@ -152,7 +162,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
         mRecyclerView.setAdapter(mFirebaseAdapter);
     }
 
-    @Override
+    /*@Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if(requestCode == REQ){
@@ -162,7 +172,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
             }
         }
 
-    }
+    }*/
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -192,5 +202,10 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
         Log.d(TAG, "onConnectionFailed:" + connectionResult);
         Toast.makeText(this, "Google Play Services error.", Toast.LENGTH_SHORT).show();
     }
-    
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        mFirebaseAdapter.cleanup();
+    }
 }
