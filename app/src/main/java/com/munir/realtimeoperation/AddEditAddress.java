@@ -1,11 +1,14 @@
 package com.munir.realtimeoperation;
 
 import android.app.Activity;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.PersistableBundle;
 import android.support.design.widget.CoordinatorLayout;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
@@ -26,6 +29,7 @@ public class AddEditAddress extends AppCompatActivity {
     CoordinatorLayout cl;
     Intent intent;
     public Bundle bundle;
+    public String key;
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -42,13 +46,13 @@ public class AddEditAddress extends AppCompatActivity {
         intent = getIntent();
         bundle = intent.getExtras();
         position = bundle.getInt(MainActivity.INTENT_TYPE);
+        key = bundle.getString("key");
         if( position!= -1){
             showAddress();
         }
-
     }
 
-    public void addAddress(View view){
+    public void addEditAddress(View view){
        /* HashMap<String, Object> result = new HashMap<>();
         HashMap<String, Object> resultUpdate = new HashMap<>();
         result.put("name" , pName.getText().toString());
@@ -63,24 +67,47 @@ public class AddEditAddress extends AppCompatActivity {
         else{
             MainActivity.mDatabaseReference.child(bundle.getString("key").toString()).push().setValue(result);
         }*/
-        String key = bundle.getString("key");
+
         AddressBook addressBook = new AddressBook(pName.getText().toString(),
                 pAddress.getText().toString(),
                 pUrl.getText().toString(),
                 pEmail.getText().toString());
         Map<String,Object> postValues = addressBook.toMap();
-        if( position == -1) {
-            MainActivity.mDatabaseReference.push().setValue(addressBook);
+        if(pName.getText().toString().length()>0 && pAddress.getText().toString().length() >0) {
+            if (position == -1) {
+                MainActivity.mDatabaseReference.push().setValue(addressBook);
+            } else {
+                //Map<String,Object> addressUpdate = new HashMap<>();
+
+                //MainActivity.mDatabaseReference.child(bundle.getString("key").toString()).setValue(postValues);
+
+                MainActivity.mDatabaseReference.child(key).updateChildren(postValues);
+            }
+            finish();
         }
         else{
-            //Map<String,Object> addressUpdate = new HashMap<>();
-
-            //MainActivity.mDatabaseReference.child(bundle.getString("key").toString()).setValue(postValues);
-
-            MainActivity.mDatabaseReference.child(key).updateChildren(postValues);
+            Snackbar.make(cl,"Name and Address can not be empty",Snackbar.LENGTH_SHORT).show();
         }
+    }
+    public void deleteAddress(View view){
+        new AlertDialog.Builder(this)
+                .setTitle("Delete Entry")
+                .setMessage("Are you sure you want to delete " + bundle.getString("name"))
+                .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        MainActivity.mDatabaseReference.child(key).removeValue();
+                        finish();
+                    }
+                })
+                .setNegativeButton("Cancel" , new DialogInterface.OnClickListener(){
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
 
-        finish();
+                    }
+                }).setIcon(android.R.drawable.alert_dark_frame).show();
+
+
     }
 
     private void showAddress(){

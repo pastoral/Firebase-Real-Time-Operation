@@ -1,20 +1,26 @@
 package com.munir.realtimeoperation;
 
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.ContextMenu;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -24,14 +30,13 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.roughike.bottombar.BottomBar;
 
 import java.util.HashMap;
 import java.util.Map;
 
 public class MainActivity extends AppCompatActivity implements GoogleApiClient.OnConnectionFailedListener {
 
-    public static class AddressViewHolder extends RecyclerView.ViewHolder{
+    public static class AddressViewHolder extends RecyclerView.ViewHolder implements View.OnCreateContextMenuListener {
         public TextView textName;
         public TextView textAddress;
         public TextView textUrl;
@@ -39,17 +44,29 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
 
         public AddressViewHolder(View view){
             super(view);
+            view.setClickable(true);
             mView = view;
             textName = (TextView)view.findViewById(R.id.textName);
             textAddress = (TextView)view.findViewById(R.id.textAddress);
             textUrl = (TextView)view.findViewById(R.id.textURL);
+            view.setOnCreateContextMenuListener(this);
 
         }
+
+        @Override
+        public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
+            //menu.setHeaderTitle("Select Action");
+            int temp = v.getId();
+            menu.add(0,v.getId(),0,"Delete");
+        }
+
+
 
     }
     public static final String ADRESS = "addresses";
     private static final String TAG = "MainActivity";
     public static String INTENT_TYPE ;
+    public String Key;
     public int pos = 0;
     private Intent intent;
     private RecyclerView mRecyclerView;
@@ -58,6 +75,9 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
     public static DatabaseReference mDatabaseReference;
     public FirebaseRecyclerAdapter<AddressBook,AddressViewHolder> mFirebaseAdapter;
     private ProgressBar progressBar;
+    private ImageButton deleteButton;
+    public CoordinatorLayout cl;
+    public FloatingActionButton fab;
     static boolean calledAlready = false;
     private int itemCount = 0;
     static final int REQ = 1;
@@ -71,27 +91,29 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        cl = (CoordinatorLayout)findViewById(R.id.coordinatorlayout);
         setSupportActionBar(toolbar);
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+       fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 //Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
                 //        .setAction("Action", null).show();
+
                 intent = new Intent(MainActivity.this, AddEditAddress.class);
                 intent.putExtra(INTENT_TYPE,-1);
 
-               // startActivityForResult(intent,REQ);
+                // startActivityForResult(intent,REQ);
                 startActivity(intent);
             }
         });
         progressBar = (ProgressBar)findViewById(R.id.progressBar);
+        //deleteButton = (ImageButton)findViewById()
+
         mRecyclerView = (RecyclerView)findViewById(R.id.recyclerview);
         mLinearLayoutManager = new LinearLayoutManager(this);
         mRecyclerView.setHasFixedSize(true);
 
-        BottomBar bottomBar = BottomBar.attach(this,savedInstanceState);
-        bottomBar.setItemsFromMenu(R.menu.menu_bottom_bar,);
 
     }
 
@@ -124,7 +146,8 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
                     @Override
                     public void onClick(View view, int position) {
                         // Toast.makeText(getApplicationContext(),mFirebaseAdapter.getItem(position).getName() + " is selected!", Toast.LENGTH_SHORT).show();
-                        final String Key = getRef(position).getKey();
+                        Key = getRef(position).getKey();
+                        pos = position;
                         intent = new Intent(MainActivity.this,AddEditAddress.class);
                         intent.putExtra("name",mFirebaseAdapter.getItem(position).getName());
                         intent.putExtra("email",mFirebaseAdapter.getItem(position).getEmail());
@@ -132,11 +155,28 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
                         intent.putExtra("address",mFirebaseAdapter.getItem(position).getAddress());
                         intent.putExtra("key",Key);
                         startActivity(intent);
-                       // startActivityForResult(intent,REQ);
+                        // startActivityForResult(intent,REQ);
                     }
 
                     @Override
                     public void onLongClick(View view, int position) {
+                      //  Toast.makeText(getApplicationContext(),mFirebaseAdapter.getItem(position).getName() + " is selected!", Toast.LENGTH_SHORT).show();
+                       /* new AlertDialog.Builder(getApplicationContext())
+                                .setTitle("Delete Entry")
+                                .setMessage("Are you sure you want to delete " + mFirebaseAdapter.getItem(position).getName())
+                                .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        //MainActivity.mDatabaseReference.child(Key).removeValue();
+                                       // finish();
+                                    }
+                                })
+                                .setNegativeButton("Cancel" , new DialogInterface.OnClickListener(){
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+
+                                    }
+                                }).show(); */
 
                     }
                 } ));
@@ -159,7 +199,6 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
                 }
             }
         });
-
         mRecyclerView.setLayoutManager(mLinearLayoutManager);
         mRecyclerView.setItemAnimator(new DefaultItemAnimator());
         mRecyclerView.addItemDecoration(new DividerItemDecoration(this, LinearLayoutManager.VERTICAL));
@@ -175,8 +214,13 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
                 mDatabaseReference.push().setValue(result);
             }
         }
-
     }*/
+
+    @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+
+        return true;
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -192,10 +236,12 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
 
+
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
             return true;
         }
+
 
         return super.onOptionsItemSelected(item);
     }
@@ -205,6 +251,17 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
         // be available.
         Log.d(TAG, "onConnectionFailed:" + connectionResult);
         Toast.makeText(this, "Google Play Services error.", Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public boolean onContextItemSelected(MenuItem item) {
+        if(item.getTitle() == "Delete"){
+           Snackbar snackbar =  Snackbar.make(cl,"Are you sure to delete",Snackbar.LENGTH_LONG);
+            snackbar.show();
+
+
+        }
+        return super.onContextItemSelected(item);
     }
 
     @Override

@@ -1,0 +1,5 @@
+ <ripple
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:color="@color/common_plus_signin_btn_text_light_disabled"
+        tools:ignore="NewApi" />

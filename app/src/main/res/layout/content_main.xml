@@ -22,5 +22,6 @@
         android:layout_height="match_parent"
         android:id="@+id/recyclerview"
         android:scrollbars="vertical"
+        android:foreground="@drawable/selectable_item_background"
         />
 </FrameLayout>
