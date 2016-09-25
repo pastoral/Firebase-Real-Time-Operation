@@ -51,7 +51,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
             textName = (TextView)view.findViewById(R.id.textName);
             textAddress = (TextView)view.findViewById(R.id.textAddress);
             textUrl = (TextView)view.findViewById(R.id.textURL);
-            view.setOnCreateContextMenuListener(this);
+            view.setOnCreateContextMenuListener(this); // Context Menu Listner
 
         }
 
@@ -133,7 +133,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
                 AddressBook.class,
                 R.layout.address_item,
                 AddressViewHolder.class,
-                mDatabaseReference
+                mDatabaseReference.orderByChild("name") // sorting items by name
         ) {
             @Override
             protected void populateViewHolder(final AddressViewHolder viewHolder, final AddressBook model, int position) {
