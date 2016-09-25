@@ -65,14 +65,6 @@
                 android:text="OK"
                 android:onClick="addEditAddress"/>
 
-            <Button
-                android:id="@+id/bDelete"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="Delete"
-                android:onClick="deleteAddress"/>
-
         </LinearLayout>
     </RelativeLayout>
 </android.support.design.widget.CoordinatorLayout>

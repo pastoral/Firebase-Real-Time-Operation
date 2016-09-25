@@ -2,6 +2,7 @@ package com.munir.realtimeoperation;
 
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -25,6 +26,7 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.firebase.client.collection.LLRBNode;
 import com.firebase.ui.database.FirebaseRecyclerAdapter;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -177,6 +179,8 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
 
                                     }
                                 }).show(); */
+                        Key = getRef(position).getKey();
+                        pos = position;
 
                     }
                 } ));
@@ -256,10 +260,19 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
     @Override
     public boolean onContextItemSelected(MenuItem item) {
         if(item.getTitle() == "Delete"){
-           Snackbar snackbar =  Snackbar.make(cl,"Are you sure to delete",Snackbar.LENGTH_LONG);
+           Snackbar snackbar =  Snackbar.make(cl,"Are you sure to delete " + "  " + mFirebaseAdapter.getItem(pos).getName(),Snackbar.LENGTH_LONG)
+                   .setAction("Delete" , new View.OnClickListener(){
+                       @Override
+                       public void onClick(View v) {
+                          // Toast.makeText(MainActivity.this,"Message Delete", Toast.LENGTH_SHORT).show();
+                           mDatabaseReference.child(Key).removeValue();
+                           Snackbar snackbar1 = Snackbar.make(cl, mFirebaseAdapter.getItem(pos).getName() +  "  " +"is deleted!", Snackbar.LENGTH_SHORT);
+                           snackbar1.show();
+                       }
+
+                   });
+            snackbar.setActionTextColor(Color.RED);
             snackbar.show();
-
-
         }
         return super.onContextItemSelected(item);
     }
