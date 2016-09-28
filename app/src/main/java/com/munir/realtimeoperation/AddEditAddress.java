@@ -89,26 +89,7 @@ public class AddEditAddress extends AppCompatActivity {
             Snackbar.make(cl,"Name and Address can not be empty",Snackbar.LENGTH_SHORT).show();
         }
     }
-    public void deleteAddress(View view){
-        new AlertDialog.Builder(this)
-                .setTitle("Delete Entry")
-                .setMessage("Are you sure you want to delete " + bundle.getString("name"))
-                .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        MainActivity.mDatabaseReference.child(key).removeValue();
-                        finish();
-                    }
-                })
-                .setNegativeButton("Cancel" , new DialogInterface.OnClickListener(){
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
 
-                    }
-                }).setIcon(android.R.drawable.alert_dark_frame).show();
-
-
-    }
 
     private void showAddress(){
         pName.setText(bundle.getString("name").toString());

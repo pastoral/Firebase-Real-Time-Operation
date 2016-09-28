@@ -28,6 +28,8 @@
                 android:value="com.munir.realtimeoperation.MainActivity">
             </meta-data>
         </activity>
+
+
     </application>
 
 </manifest>

@@ -1,5 +1,7 @@
 package com.munir.realtimeoperation;
 
+import android.app.SearchManager;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
@@ -9,11 +11,13 @@ import android.support.annotation.NonNull;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.ContextMenu;
@@ -33,7 +37,9 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class MainActivity extends AppCompatActivity implements GoogleApiClient.OnConnectionFailedListener {
@@ -83,6 +89,10 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
     static boolean calledAlready = false;
     private int itemCount = 0;
     static final int REQ = 1;
+    SearchView searchView;
+    private List<AddressBook> list ;
+    public List<AddressBook> filteredList;
+    public String searchable = null;
     public interface ClickListener {
         void onClick(View view, int position);
 
@@ -99,23 +109,18 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                //Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                //        .setAction("Action", null).show();
-
                 intent = new Intent(MainActivity.this, AddEditAddress.class);
                 intent.putExtra(INTENT_TYPE,-1);
-
-                // startActivityForResult(intent,REQ);
                 startActivity(intent);
             }
         });
         progressBar = (ProgressBar)findViewById(R.id.progressBar);
-        //deleteButton = (ImageButton)findViewById()
 
         mRecyclerView = (RecyclerView)findViewById(R.id.recyclerview);
         mLinearLayoutManager = new LinearLayoutManager(this);
         mRecyclerView.setHasFixedSize(true);
-
+        list = new ArrayList<AddressBook>();
+        filteredList = new ArrayList<AddressBook>();
 
     }
 
@@ -127,13 +132,15 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
             FirebaseDatabase.getInstance().setPersistenceEnabled(true);
             calledAlready = true;
         }
+        list.clear();
+        filteredList.clear();
         mDatabaseReference = FirebaseDatabase.getInstance().getReference(ADRESS);
         mDatabaseReference.keepSynced(true);
         mFirebaseAdapter = new FirebaseRecyclerAdapter<AddressBook, AddressViewHolder>(
                 AddressBook.class,
                 R.layout.address_item,
                 AddressViewHolder.class,
-                mDatabaseReference.orderByChild("name") // sorting items by name
+                mDatabaseReference.orderByChild("name").startAt(searchable).endAt(searchable+"\uf8ff") // sorting items by name
         ) {
             @Override
             protected void populateViewHolder(final AddressViewHolder viewHolder, final AddressBook model, int position) {
@@ -142,7 +149,6 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
                 viewHolder.textAddress.setText(model.getAddress());
                 viewHolder.textUrl.setText(model.getUrl());
                 pos = position;
-
 
                 mRecyclerView.addOnItemTouchListener(new RecyclerTouchListener(getApplicationContext(), mRecyclerView, new ClickListener(){
                     @Override
@@ -162,23 +168,6 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
 
                     @Override
                     public void onLongClick(View view, int position) {
-                      //  Toast.makeText(getApplicationContext(),mFirebaseAdapter.getItem(position).getName() + " is selected!", Toast.LENGTH_SHORT).show();
-                       /* new AlertDialog.Builder(getApplicationContext())
-                                .setTitle("Delete Entry")
-                                .setMessage("Are you sure you want to delete " + mFirebaseAdapter.getItem(position).getName())
-                                .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-                                    @Override
-                                    public void onClick(DialogInterface dialog, int which) {
-                                        //MainActivity.mDatabaseReference.child(Key).removeValue();
-                                       // finish();
-                                    }
-                                })
-                                .setNegativeButton("Cancel" , new DialogInterface.OnClickListener(){
-                                    @Override
-                                    public void onClick(DialogInterface dialog, int which) {
-
-                                    }
-                                }).show(); */
                         Key = getRef(position).getKey();
                         pos = position;
 
@@ -220,35 +209,51 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
         }
     }*/
 
-    @Override
-    public boolean onPrepareOptionsMenu(Menu menu) {
-
-        return true;
-    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_main, menu);
+       /* MenuItem searchItem = menu.findItem(R.id.search);
+        searchView = (SearchView) MenuItemCompat.getActionView(searchItem);
+
+            searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+                @Override
+                public boolean onQueryTextSubmit(String query) {
+                    return false;
+                }
+
+                @Override
+                public boolean onQueryTextChange(String newText) {
+                    Log.i("well", " this worked");
+                    searchable = newText.toString().toUpperCase().trim();
+                    mFirebaseAdapter = new FirebaseRecyclerAdapter<AddressBook, AddressViewHolder>(
+                            AddressBook.class,
+                            R.layout.address_item,
+                            AddressViewHolder.class,
+                            mDatabaseReference.orderByChild("name").startAt(searchable).endAt(searchable+"\uf8ff")
+                    ) {
+                        @Override
+                        protected void populateViewHolder(AddressViewHolder viewHolder, AddressBook model, int position) {
+                            progressBar.setVisibility(ProgressBar.GONE);
+                            viewHolder.textName.setText(model.getName());
+                            viewHolder.textAddress.setText(model.getAddress());
+                            viewHolder.textUrl.setText(model.getUrl());
+                        }
+                    };
+                    mRecyclerView.setLayoutManager(mLinearLayoutManager);
+                    mRecyclerView.setItemAnimator(new DefaultItemAnimator());
+                    mRecyclerView.addItemDecoration(new DividerItemDecoration(getApplicationContext(), LinearLayoutManager.VERTICAL));
+                    mRecyclerView.setAdapter(mFirebaseAdapter);
+                    return true;
+                }
+            }); */
+
+
         return true;
     }
 
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
 
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
-        }
-
-
-        return super.onOptionsItemSelected(item);
-    }
     @Override
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
         // An unresolvable error has occurred and Google APIs (including Sign-In) will not
